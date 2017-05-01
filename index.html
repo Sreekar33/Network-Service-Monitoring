@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="js/ping.js"></script>
+    <script>
+    	var change_state = false;
+    	var init = 0;
+    	var do_ping = function(){
+        	ping('http://www.google.com', 0.3).then(function(delta){
+            	var appControl = new tizen.ApplicationControl("http://tizen.org/appcontrol/operation/create_content", null, "image/jpg", null, null);
+				var notificationDict1 = {
+       				content: "Connected to the Internet !",
+       				iconPath: "images/icon.png",
+       				soundPath: "music/Over the horizon.mp3",
+       				vibration: true,
+       				appControl: appControl
+            	};
+            	if(change_state == false || init==0){
+            		init =1;
+            		var noti = tizen.notification.getAll();
+					var index = 0;
+					for(index = 0;index < noti.length;index++){
+						if (noti[index].title == 'Network Service Monitor'){
+							tizen.notification.remove(noti[index].id);
+						}
+					}
+            		var notification1 = new tizen.StatusNotification("SIMPLE", "Network Service Monitor", notificationDict1);
+            		tizen.notification.post(notification1);
+            		change_state = true;
+            		dns_server = true;
+            	}
+        	}).catch(function(error){
+            	var appControl = new tizen.ApplicationControl("http://tizen.org/appcontrol/operation/create_content", null, "image/jpg", null, null);
+				var notificationDict2 = {
+       				content: "Disconnected from the Internet !",
+       				iconPath: "images/icon.png",
+       				soundPath: "music/Over the horizon.mp3",
+       				vibration: true,
+       				appControl: appControl
+            	};
+            	if(change_state == true || init == 0){
+            		init = 1;
+            		var noti = tizen.notification.getAll();
+					var index = 0;
+					for(index = 0; index < noti.length;index++){
+						if (noti[index].title == 'Network Service Monitor'){
+							tizen.notification.remove(noti[index].id);
+						}
+					}
+            		var notification2 = new tizen.StatusNotification("SIMPLE", "Network Service Monitor", notificationDict2);
+            		tizen.notification.post(notification2);
+            		change_state = false;
+            		dns_server = false;
+            	}
+        	});
+    	};
+    </script>
+
+	<script>
+		var change=false;
+		var g_init=0;
+		var check_gateway = function(gateway_ip){
+			ping('192.168.114.2', 0.3).then(function(delta){
+				change = true;
+				//var string=gateway_ip;
+				//alert(string);
+			}).catch(function(error){
+				//alert('false');
+				change = false;
+			});
+		};
+		
+		var main = function(gateway_ip){
+			var i = setInterval(function(){
+									check_gateway(gateway_ip);
+									if(change=true || g_init==0){
+										g_init=1;
+										do_ping();
+									}
+									else{
+										alert('Gateway cannot be reached !');
+									}
+								}, 4000);
+			var j = setInterval(function(){
+									check_gateway(gateway_ip);
+									if(change=true || g_init==0){
+										dns('c.com');
+										g_init=1;
+									}
+									else{
+										alert('Gateway cannot be reached !');
+									}
+								}, 9000);
+		}
+    </script>
+
+    <script>   
+        function dns(url){
+        	var dns_server = false;
+        	var do_ping = function(){
+        		ping('192.168.35.52', 0.3).then(function(delta){
+            		dns_server = true;
+            		alert('true');
+            		console.log("true");
+        		}).catch(function(error){
+					dns_server = false;
+					console.log("false");
+					alert('false');
+        	  	});
+    		};
+        	var oReq = new XMLHttpRequest();
+			oReq.onload = function(){
+  				var response = JSON.parse(this.responseText);
+  				var get_result = JSON.stringify(response.dns_entries);
+  				//alert(get_result);
+  				var alert_string;
+  				if(dns_server === true){
+  					alert_string = 'DNS server UP and ';
+  					if(get_result == undefined){
+  					alert_string += 'Domain : ' + url + ' is Unable to resolve';
+  					}
+  					else{
+  					alert_string += 'Domain : ' + url + ' is UP';
+  					}
+  				}
+  				else{
+  					alert_string = 'DNS server DOWN';
+  				}
+  				alert(alert_string);
+			
+			}
+			var send_url = "https://www.enclout.com/api/v1/dns/show.json?auth_token=ouwGvmLFFcsz55Eb5g-c&url=" + url;
+			oReq.open("GET", send_url, true);
+			oReq.send();
+		}
+	</script>
+
+</head>
+<body>
+	<button onclick='main("172.16.0.3")' type="button" style="margin-left:auto;margin-right:auto;display:block;margin-top:15%;margin-bottom:0%">
+<img src="images/start.png"></button>
+</body>
+</html>
