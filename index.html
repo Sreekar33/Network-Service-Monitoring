@@ -26,6 +26,7 @@
 					}
             		var notification1 = new tizen.StatusNotification("SIMPLE", "Network Service Monitor", notificationDict1);
             		tizen.notification.post(notification1);
+			alert("Connected to the Internet !");
             		change_state = true;
             		dns_server = true;
             	}
@@ -49,6 +50,7 @@
 					}
             		var notification2 = new tizen.StatusNotification("SIMPLE", "Network Service Monitor", notificationDict2);
             		tizen.notification.post(notification2);
+			alert("Disconnected from the Internet !");
             		change_state = false;
             		dns_server = false;
             	}
